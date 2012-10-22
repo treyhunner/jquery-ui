@@ -1,0 +1,70 @@
+--- jquery.ui.autocomplete.js
++++ jquery.ui.autocomplete.js
+@@ -35,9 +35,9 @@
+ 
+ 	_create: function() {
+ 		var self = this,
+-			doc = this.element[ 0 ].ownerDocument;
+-			var suppressKeyPress;
+-			var suppressInput;
++			doc = this.element[ 0 ].ownerDocument,
++			suppressKeyPress,
++			suppressInput;
+ 
+ 		this.element
+ 			.addClass( "ui-autocomplete-input" )
+@@ -48,16 +48,6 @@
+ 				"aria-autocomplete": "list",
+ 				"aria-haspopup": "true"
+ 			})
+-            .bind( "genericKeyEvent.autocomplete", function( event ) {
+-                clearTimeout( self.searching );
+-                self.searching = setTimeout(function() {
+-                    // only search if the value has changed
+-                    if ( self.term != self.element.val() ) {
+-                        self.selectedItem = null;
+-                        self.search( null, event );
+-                    }
+-                }, self.options.delay );
+-            })
+ 			.bind( "keydown.autocomplete", function( event ) {
+ 				if ( self.options.disabled || self.element.attr( "readonly" ) ) {
+                     suppressKeyPress = true;
+@@ -110,8 +100,8 @@
+ 					self.close( event );
+ 					break;
+ 				default:
+-                    // keypress is triggered before the input value is changed
+-                    $(this).trigger( "genericKeyEvent", event );
++                    // search timeout should be triggered before the input value is changed
++                    self._searchTimeout( event );
+                     break;
+ 				}
+ 			})
+@@ -148,7 +138,7 @@
+ 					event.preventDefault();
+                     return;
+ 				}
+-                $(this).trigger( "genericKeyEvent", event );
++                self._searchTimeout( event );
+             })
+ 			.bind( "focus.autocomplete", function() {
+ 				if ( self.options.disabled ) {
+@@ -318,6 +308,17 @@
+ 		}
+ 	},
+ 
++    _searchTimeout: function( event ) {
++        var self = this;
++        self.searching = setTimeout(function() {
++            // only search if the value has changed
++            if ( self.term != self.element.val() ) {
++                self.selectedItem = null;
++                self.search( null, event );
++            }
++        }, self.options.delay );
++    },
++
+ 	search: function( value, event ) {
+ 		value = value != null ? value : this.element.val();
+ 
